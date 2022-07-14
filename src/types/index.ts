@@ -2,7 +2,6 @@ export interface Rating {
   Source: string;
   Value: string;
 }
-
 export interface Movie {
   Title: string;
   Year: string;
