@@ -1,21 +1,24 @@
-import { Box, Heading, Spinner } from "@chakra-ui/react";
+import { Box, Heading, Spinner, useDisclosure } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import useFetchMovies from "../../hooks/useFetchMovies";
 import { Movie } from "../../types";
+import { MovieModal } from "./MovieModal";
+import { SearchMovie } from "./SearchMovie";
+import useFetchMovies from "../../hooks/useFetchMovies";
 import MovieCard from "./MovieCard";
 import MovieList from "./MovieList";
 import Pagination from "./Pagination";
-import { SearchMovie } from "./SearchMovie";
 
 const Movies: React.FC = () => {
-  const [page, setPage] = useState<number>(1);
-  const [movies, setMovies] = useState<Movie | Movie[] | undefined>(undefined);
   const [isSearchDirty, setIsSearchDirty] = useState<boolean>(false);
-
+  const [page, setPage] = useState<number>(1);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | undefined>();
+  const [movies, setMovies] = useState<Movie | Movie[] | undefined>();
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const { isLoading, error, data, refetch } = useFetchMovies(
     page,
     isSearchDirty
   );
+
   useEffect(() => {
     refetch();
   }, [isSearchDirty]);
@@ -28,18 +31,39 @@ const Movies: React.FC = () => {
     return <p>Error!</p>;
   }
 
+  const handleMovieClick = (movie: Movie) => {
+    setSelectedMovie(movie);
+    onOpen();
+  };
+
   const renderMovies = () => {
     if (isLoading) {
-      return <Spinner m="auto" size="xl" />;
+      return (
+        <Spinner
+          thickness="4px"
+          speed="0.65s"
+          emptyColor="gray.200"
+          color="blue.500"
+          size="xl"
+          my="4"
+          mx="auto"
+          display="flex"
+          justifySelf="center"
+        />
+      );
     }
     if (movies instanceof Array) {
-      return <MovieList movies={data?.movies} />;
+      return (
+        <MovieList movies={data?.movies} handleMovieClick={handleMovieClick} />
+      );
     }
-    return <MovieCard movie={movies} />;
+    if(movies){
+      return <MovieCard movie={movies} handleMovieClick={handleMovieClick} />;
+    }
   };
 
   return (
-    <div>
+    <Box>
       <Heading
         as="h2"
         size={{ base: "lg", md: "xl" }}
@@ -50,6 +74,7 @@ const Movies: React.FC = () => {
       </Heading>
       <SearchMovie setMovies={setMovies} setIsSearchDirty={setIsSearchDirty} />
       <Box w="full">{renderMovies()}</Box>
+      <MovieModal isOpen={isOpen} onClose={onClose} movie={selectedMovie} />
       {movies instanceof Array && (
         <Pagination
           page={page}
@@ -57,7 +82,7 @@ const Movies: React.FC = () => {
           totalPages={data?.totalPages!}
         />
       )}
-    </div>
+    </Box>
   );
 };
 

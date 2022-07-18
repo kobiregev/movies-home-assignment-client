@@ -17,7 +17,7 @@ export const SearchMovie: React.FC<SearchMovieProps> = ({
 }) => {
   const [title, setTitle] = useState<string>("");
   const debouncedTitle = useDebounce(title);
-  const { data, error, status } = useSearchMovie(debouncedTitle);
+  const { data, error } = useSearchMovie(debouncedTitle);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -25,8 +25,7 @@ export const SearchMovie: React.FC<SearchMovieProps> = ({
     setTitle(value);
   };
   const notify = () => {
-    console.log("asd")
-    toast("Movie not found")
+    toast("Movie not found");
   };
 
   useEffect(() => {
@@ -38,17 +37,24 @@ export const SearchMovie: React.FC<SearchMovieProps> = ({
     if (!error && data) {
       setMovies(data);
     }
+
+    return () => {
+      toast.dismiss();
+    };
   }, [data, error]);
 
   return (
     <>
       <Input
-        w={{ base: "full", md: "50%" }}
+        w={{ base: "full", md: "350px" }}
+        colorScheme="linkedin"
         placeholder="Search Movie..."
         value={title}
         onChange={handleInputChange}
+        display="block"
+        mx="auto"
       />
-      <ToastContainer />
+      <ToastContainer limit={1} />
     </>
   );
 };
